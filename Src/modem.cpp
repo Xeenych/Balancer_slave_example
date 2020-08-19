@@ -130,10 +130,11 @@ bool modem::Send(uint8_t* data, uint16_t length) {
 	char buf[100] = "\0";
 	char strlength[20];
 	sprintf(strlength, "%d", length);
-	flush();
 	strcat (buf, cmd);
 	strcat (buf, strlength);
 	strcat (buf, "\r");
+
+	flush();
 	printf("%s", buf);
 	sendString(buf);
 	sendData(data, length);

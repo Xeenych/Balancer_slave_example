@@ -21,11 +21,12 @@
  ********************/
 
 #include <LowLevelIOInterface.h>
+#include "UartStream.hpp"
 
 #pragma module_name = "?__write"
 
 int MyLowLevelPutchar(int x);
-
+size_t uart__write(int handle, const unsigned char * buffer, size_t size);
 /*
  * If the __write implementation uses internal buffering, uncomment
  * the following line to ensure that we are called with "buffer" as 0
@@ -51,7 +52,7 @@ size_t __write(int handle, const unsigned char * buffer, size_t size)
    * for all other file handles it returns failure. */
   if (handle != _LLIO_STDOUT && handle != _LLIO_STDERR)
   {
-    return _LLIO_ERROR;
+    return uart__write(handle, buffer, size);
   }
 
   for (/* Empty */; size != 0; --size)

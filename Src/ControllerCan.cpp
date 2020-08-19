@@ -22,17 +22,11 @@ ControllerCan::ControllerCan(CAN_HandleTypeDef* h, uint32_t mode) : handle(h){
 };
 
 void ControllerCan::ConfigureBaud() {
-  	// 500 kbit/s
-	//handle.Init.Prescaler = 4;
-  	//handle.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  	//handle.Init.TimeSeg1 = CAN_BS1_13TQ;
-  	//handle.Init.TimeSeg2 = CAN_BS2_2TQ;
-
 	// 1000 kbit/s
   	handle->Init.Prescaler = 1;
-  	handle->Init.SyncJumpWidth = CAN_SJW_1TQ;
-  	handle->Init.TimeSeg1 = CAN_BS1_6TQ;
-  	handle->Init.TimeSeg2 = CAN_BS2_3TQ;
+  	handle->Init.TimeSeg1 = CAN_BS1_1TQ;
+  	handle->Init.TimeSeg2 = CAN_BS2_6TQ;
+	handle->Init.SyncJumpWidth = CAN_SJW_3TQ;
 
   	handle->Init.TimeTriggeredMode = DISABLE;
   	handle->Init.AutoBusOff = ENABLE;
