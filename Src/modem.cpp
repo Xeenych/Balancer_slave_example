@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "modem.hpp"
 
@@ -15,6 +16,10 @@ uint8_t modem::getChar() {
 
 void modem::sendString(const char* cmd) {
 	HAL_UART_Transmit(&huart, (uint8_t*)cmd, strlen(cmd), HAL_MAX_DELAY);
+}
+
+void modem::sendData(uint8_t* data, uint16_t len) {
+	HAL_UART_Transmit(&huart, data, len, HAL_MAX_DELAY);
 }
 
 void modem::flush() {
@@ -49,9 +54,94 @@ char* modem::getResponseString() {
 
 bool modem::isRegistered() {
 	flush();
+	printf("AT+CGREG?\r");
 	sendString("AT+CGREG?\r");
-	auto response = getResponseString();
-	if (strcmp(response, "OK") == 0)
+	auto response0 = getResponseString();
+	auto response1 = getResponseString();
+	printf("%s", response0);
+	printf("%s", response1);
+	if (strcmp(response0, "+CGREG: 0,1") == 0)
+		return true;
+	return false;
+}
+
+bool modem::connectToAPN() {
+	flush();
+	printf("AT+QICSGP=1,1,\"internet.yota\",\"\",\"\",1\r");
+	sendString("AT+QICSGP=1,1,\"internet.yota\",\"\",\"\",1\r");
+	auto response0 = getResponseString();
+	printf("%s", response0);
+	if (strcmp(response0, "OK") == 0)
+		return true;
+	return false;
+}
+
+bool modem::qiact() {
+	flush();
+	printf("AT+QIACT=1\r");
+	sendString("AT+QIACT=1\r");
+	auto response0 = getResponseString();
+	printf("%s", response0);
+	if (strcmp(response0, "OK") == 0)
+		return true;
+	return false;
+}
+
+bool modem::isQIACT() {
+	flush();
+	printf("AT+QIACT?\r");
+	sendString("AT+QIACT?\r");
+	auto response0 = getResponseString();
+	auto response1 = getResponseString();
+	printf("%s", response0);
+	printf("%s", response1);
+	if (strncmp(response0, "+QIACT", 6) ==0)
+		return true;
+	return false;
+}
+
+bool modem::ATV1() {
+	flush();
+	printf("ATV1\r");
+	sendString("ATV1\r");
+	auto response0 = getResponseString();
+	printf("%s", response0);
+	if (strcmp(response0, "OK") == 0)
+		return true;
+	return false;
+}
+
+bool modem::QIOPEN() {
+	const char* cmd = "AT+QIOPEN=1,0,\"TCP\",\"194.67.92.238\",65432,0,1\r";
+	flush();
+	printf("%s", cmd);
+	sendString(cmd);
+	auto response0 = getResponseString();
+	auto response1 = getResponseString();
+	printf("%s", response0);
+	printf("%s", response1);
+	if (strncmp(response1, "+QIOPEN:", 8) ==0)
+		return true;
+	return false;
+}
+
+bool modem::Send(uint8_t* data, uint16_t length) {
+	const char* cmd = "AT+QISEND=0,";
+	char buf[100] = "\0";
+	char strlength[20];
+	sprintf(strlength, "%d", length);
+	flush();
+	strcat (buf, cmd);
+	strcat (buf, strlength);
+	strcat (buf, "\r");
+	printf("%s", buf);
+	sendString(buf);
+	sendData(data, length);
+
+	auto response0 = getResponseString();
+	printf("%s", response0);
+
+	if (strcmp(response0, "SEND OK") ==0)
 		return true;
 	return false;
 }

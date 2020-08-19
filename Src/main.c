@@ -24,8 +24,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 //#include "CanApplication.hpp"
+#include <stdio.h>
+#include <stdlib.h>
 #include "CanTypes.hpp"
 #include "modem.hpp"
+#include "modemController.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,6 +69,12 @@ static void MX_USART3_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int MyLowLevelPutchar(int x) {
+	auto result = HAL_UART_Transmit(&huart3, (uint8_t*)&x, 1, HAL_MAX_DELAY);
+	if (result==HAL_OK)
+		return x;
+	return -1;
+}
 
 /* USER CODE END 0 */
 
@@ -111,12 +120,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   board_t data;
   modem m {huart2};
+  modemController mc{m};
+  printf("Start\n");
 
-  while (1)
+  while (true)
   {
+	mc.Run();
+	if (mc.canSend())
+		mc.Send((uint8_t*)&data, sizeof(board_t));
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  /*
 	CAN_TxMsg output[8];
 	uint8_t board_idx=0;
 	MakeCanBuffer (board_idx, &data, output);
@@ -125,6 +140,7 @@ int main(void)
 	}
 
 	for (volatile int i=0;i<100000;i++);
+	*/
   }
   /* USER CODE END 3 */
 }

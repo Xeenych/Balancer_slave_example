@@ -1217,10 +1217,19 @@
                 <name>$PROJ_DIR$\..\Src\modem.hpp</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Src\modemController.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\modemController.hpp</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Src\stm32f1xx_hal_msp.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f1xx_it.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\write.c</name>
             </file>
         </group>
     </group>
