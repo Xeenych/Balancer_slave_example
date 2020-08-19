@@ -20,5 +20,5 @@ enum class field_t : uint8_t {
 	t_a_switching
 };
 
-void FillFieldByType (uint8_t board_idx, const board_t* board_data, field_t field_type, CAN_TxMsg& output);
-void MakeCanBuffer (uint8_t board_idx, const board_t* board_data, CAN_TxMsg (&output)[8]);
+void BSP_parseCANRxBuffer(CAN_RxMsg& msg, board_t* board);
+void BSP_fillCANTxBuffer(CAN_TxMsg* frame_buffer, board_t* board, uint8_t board_idx);

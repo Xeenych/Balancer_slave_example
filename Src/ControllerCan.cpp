@@ -1,20 +1,20 @@
 #include <assert.h>
 #include "ControllerCan.hpp"
 
-ControllerCan::ControllerCan(CAN_HandleTypeDef* h, uint32_t mode) : handle(h){ 
+ControllerCan::ControllerCan(CAN_HandleTypeDef* h, uint32_t mode) : handle(h){
   	ConfigureBaud();
 	handle->Init.Mode = mode;
-	
+
 	SET_BIT(handle->Instance->MCR, CAN_MCR_DBF);
 	__HAL_DBGMCU_FREEZE_CAN1();
-	
+
 	{
   		HAL_StatusTypeDef res = HAL_CAN_Init(handle);
   		assert(res == HAL_OK);
 	}
-	
+
 	ConfigureFilters();
-	
+
 	{
   		HAL_StatusTypeDef res =  HAL_CAN_Start(handle);
 		assert(res == HAL_OK);
@@ -27,16 +27,16 @@ void ControllerCan::ConfigureBaud() {
   	//handle.Init.SyncJumpWidth = CAN_SJW_1TQ;
   	//handle.Init.TimeSeg1 = CAN_BS1_13TQ;
   	//handle.Init.TimeSeg2 = CAN_BS2_2TQ;
-	
-	// 125 kbit/s
-  	handle->Init.Prescaler = 16;
+
+	// 1000 kbit/s
+  	handle->Init.Prescaler = 1;
   	handle->Init.SyncJumpWidth = CAN_SJW_1TQ;
-  	handle->Init.TimeSeg1 = CAN_BS1_13TQ;
-  	handle->Init.TimeSeg2 = CAN_BS2_2TQ;
-	
+  	handle->Init.TimeSeg1 = CAN_BS1_6TQ;
+  	handle->Init.TimeSeg2 = CAN_BS2_3TQ;
+
   	handle->Init.TimeTriggeredMode = DISABLE;
   	handle->Init.AutoBusOff = ENABLE;
-  	handle->Init.AutoWakeUp = ENABLE;
+  	handle->Init.AutoWakeUp = DISABLE;
   	handle->Init.AutoRetransmission = ENABLE;
   	handle->Init.ReceiveFifoLocked = DISABLE;
   	handle->Init.TransmitFifoPriority = DISABLE;
@@ -83,7 +83,7 @@ bool ControllerCan::ReadMessage(CAN_RxMsg& msgout) {
 		bytes_recd+=msgout.header.DLC;
 	  	return true;
   	}
-  
+
   	HAL_StatusTypeDef result1 = HAL_CAN_GetRxMessage(handle, CAN_RX_FIFO1, &msgout.header, msgout.data);
   	if (result1 == HAL_OK) {
 		bytes_recd+=msgout.header.DLC;
@@ -98,9 +98,9 @@ ControllerCan::Errors ControllerCan::ReadErrors() {
 
 	  uint8_t lec = (esrflags & CAN_ESR_LEC) >> CAN_ESR_LEC_Pos;
 	  CLEAR_BIT(handle->Instance->ESR, CAN_ESR_LEC);
-	  
+
 	  uint8_t tec = (esrflags & CAN_ESR_TEC) >> CAN_ESR_TEC_Pos;
 	  uint8_t rec = (esrflags & CAN_ESR_REC) >> CAN_ESR_REC_Pos;
-	  
+
 	  return {lec, tec, rec};
 }

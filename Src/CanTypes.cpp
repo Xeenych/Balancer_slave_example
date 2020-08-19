@@ -1,58 +1,40 @@
 #pragma once
+#include <string.h>
 #include "cantypes.hpp"
 
-void FillFieldByType(uint8_t board_idx, const board_t* board_data, field_t field_type, CAN_TxMsg& output) {
-  	output.header.TransmitGlobalTime = DISABLE;
-  	output.header.IDE = CAN_ID_EXT;
-  	output.header.RTR = CAN_RTR_DATA;
-  	output.header.StdId = 0;
-  	output.header.DLC = 8;
-  
-  	uint32_t extid = board_idx;
-  	extid |= ((uint32_t)(field_type) << 8);
-  	output.header.ExtId = extid; 
-	
-	uint32_t* ptr0 = (uint32_t*)&output.data[0];
-	uint32_t* ptr1 = (uint32_t*)&output.data[4];
-	switch (field_type) {
-	case field_t::v_cell_0_1:
-		*ptr0 = *((uint32_t*)&board_data->v_cell[0]);
-		*ptr1 = *((uint32_t*)&board_data->v_cell[1]);
-		break;
-	case field_t::v_cell_2_3:
-		*ptr0 = *((uint32_t*)&board_data->v_cell[2]);
-		*ptr1 = *((uint32_t*)&board_data->v_cell[3]);
-		break;
-	case field_t::v_cell_4_5:
-		*ptr0 = *((uint32_t*)&board_data->v_cell[4]);
-		*ptr1 = *((uint32_t*)&board_data->v_cell[5]);
-		break;		
-	case field_t::v_cell_6_7:
-		*ptr0 = *((uint32_t*)&board_data->v_cell[6]);
-		*ptr1 = *((uint32_t*)&board_data->v_cell[7]);
-		break;		
-	case field_t::t_therm_0_1:
-		*ptr0 = *((uint32_t*)&board_data->t_therm[0]);
-		*ptr1 = *((uint32_t*)&board_data->t_therm[1]);
-		break;		
-	case field_t::t_therm_2_3:
-		*ptr0 = *((uint32_t*)&board_data->t_therm[2]);
-		*ptr1 = *((uint32_t*)&board_data->t_therm[3]);
-		break;				
-	case field_t::t_a_switching:
-		*ptr0 = *((uint32_t*)&board_data->t_a);
-		*ptr1 = *((uint32_t*)&board_data->switching_active);
-		break;				
-	}
+#define PARAMETER_GROUP_NR 8
+
+void BSP_parseCANRxBuffer(CAN_RxMsg& msg, board_t* board) {
+	uint8_t idx = msg.header.ExtId & 0xff;
+	void* src = msg.data;
+	int offset = (msg.header.ExtId >> 8) & 0xff;
+
+	if (offset>=PARAMETER_GROUP_NR)
+		offset=0;
+	memcpy(&(board[idx]) + offset, src, 8);
 }
 
-void MakeCanBuffer (uint8_t board_idx, const board_t* board_data, CAN_TxMsg (&output)[8]) {
-	FillFieldByType(board_idx, board_data, field_t::v_cell_0_1, output[0]);
-	FillFieldByType(board_idx, board_data, field_t::v_cell_2_3, output[1]);
-	FillFieldByType(board_idx, board_data, field_t::v_cell_4_5, output[2]);
-	FillFieldByType(board_idx, board_data, field_t::v_cell_6_7, output[3]);
-	FillFieldByType(board_idx, board_data, field_t::v_cell_8_9, output[4]);
-	FillFieldByType(board_idx, board_data, field_t::t_therm_0_1, output[5]);
-	FillFieldByType(board_idx, board_data, field_t::t_therm_2_3, output[6]);
-	FillFieldByType(board_idx, board_data, field_t::t_a_switching, output[7]);
-};
+void BSP_fillCANTxBuffer(CAN_TxMsg* frame_buffer, board_t* board, uint8_t board_idx)
+{
+    CAN_TxMsg empty_frame =
+    {
+        .data   = { 0 },
+        .header =
+        {
+            .StdId = 0,
+            .ExtId = 0,
+            .IDE = CAN_ID_EXT,
+            .RTR = CAN_RTR_DATA,
+            .DLC = 8
+        }
+    };
+    int offset = 0;
+
+    for (int i = 0; i < PARAMETER_GROUP_NR; i++)
+    {
+        memcpy((void*)&empty_frame.data, (void*)((int)board + offset), 8);
+        empty_frame.header.ExtId = board_idx | (i << 8);
+        offset += 8;
+        memcpy((void*)&frame_buffer[i], (void*)&empty_frame, sizeof(CAN_TxMsg));
+    }
+}

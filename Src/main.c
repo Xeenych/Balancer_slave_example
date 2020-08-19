@@ -112,35 +112,34 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  ControllerCan ccan {&hcan1, CAN_MODE_LOOPBACK};
-  //ControllerCan ccan {&hcan, CAN_MODE_NORMAL};
+  //ControllerCan ccan {&hcan1, CAN_MODE_LOOPBACK};
+  ControllerCan ccan {&hcan1, CAN_MODE_NORMAL};
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  board_t data;
+  const int numboards = 10;
+  board_t boards[numboards];
   modem m {huart2};
   modemController mc{m};
   printf("Start\n");
 
   while (true)
   {
-	mc.Run();
-	if (mc.canSend())
-		mc.Send((uint8_t*)&data, sizeof(board_t));
-    /* USER CODE END WHILE */
+	/* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  /*
-	CAN_TxMsg output[8];
-	uint8_t board_idx=0;
-	MakeCanBuffer (board_idx, &data, output);
-	for (int i=0;i<8;i++) {
-		while (!ccan.SendMessage(output[i]));
-	}
+	mc.Run();
+	if (mc.canSend())
+		mc.Send((uint8_t*)boards, sizeof(board_t) * numboards);
 
-	for (volatile int i=0;i<100000;i++);
-	*/
+	CAN_RxMsg msgout {0};
+	auto nummsg = ccan.MessagesAvailable();
+	if ( nummsg > 0) {
+		printf("Got %d CAN essages", nummsg);
+		ccan.ReadMessage(msgout);
+		BSP_parseCANRxBuffer(msgout, boards);
+	}
   }
   /* USER CODE END 3 */
 }
