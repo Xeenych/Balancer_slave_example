@@ -10,7 +10,7 @@ public:
 private:
 	uint8_t getChar();
 	void flush();
-	void sendString(char* cmd);
+	void sendString(const char* cmd);
 	char* getResponseString();
 	UART_HandleTypeDef& huart;
 };
