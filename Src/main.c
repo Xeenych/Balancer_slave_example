@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 //#include "CanApplication.hpp"
 #include "CanTypes.hpp"
+#include "modem.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -102,13 +103,15 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  ControllerCan ccan {&hcan, CAN_MODE_LOOPBACK};
+  ControllerCan ccan {&hcan1, CAN_MODE_LOOPBACK};
   //ControllerCan ccan {&hcan, CAN_MODE_NORMAL};
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   board_t data;
+  modem m {huart2};
+
   while (1)
   {
     /* USER CODE END WHILE */
